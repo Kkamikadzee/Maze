@@ -11,14 +11,8 @@ namespace Assets.Scripts
     {
         public Maze GenerateMaze(int Width, int Height, Vector2Int positionStart)
         {
-            Maze maze = new Maze(Width, Height, positionStart);
-            for(int x = 0; x < Width; x++)
-            {
-                for(int y = 0; y < Height; y++)
-                {
-                    maze.cells[x, y] = new MazeCell(new Vector2Int(x, y));
-                }
-            }
+            Maze maze = new Maze();
+            maze.InitializeOrthogonalMaze(Width, Height, positionStart);
             
             RemoveWallsRecursiveBacktracker(maze);
 
@@ -29,113 +23,63 @@ namespace Assets.Scripts
 
         private void PlaceMazeFinish(Maze maze)
         {
-            MazeCell furthest = maze.cells[0, 0];
+            MazeCell furthest = maze.Cells[0];
 
-            for (int x = 0; x < maze.width; x++)
+            for (int i = 1; i < maze.AmountCells; i++)
             {
-                if (maze.cells[x, 0].DistanceFromStart > furthest.DistanceFromStart)
+                if (maze.Cells[i].DistanceFromStart > furthest.DistanceFromStart)
                 {
-                    furthest = maze.cells[x, 0];
-                }
-                if (maze.cells[x, maze.height - 1].DistanceFromStart > furthest.DistanceFromStart)
-                {
-                    furthest = maze.cells[x, maze.height - 1];
+                    furthest = maze.Cells[i];
                 }
             }
 
-            for (int y = 0; y < maze.height; y++)
-            {
-                if (maze.cells[0, y].DistanceFromStart > furthest.DistanceFromStart)
-                {
-                    furthest = maze.cells[0, y];
-                }
-                if (maze.cells[maze.width - 1, y].DistanceFromStart > furthest.DistanceFromStart)
-                {
-                    furthest = maze.cells[maze.width - 1, y];
-                }
-            }
-
-            maze.positionFinish = furthest.position;
+            maze.PositionFinish = furthest.position;
         }
 
         private void RemoveWallsRecursiveBacktracker(Maze maze)
         {
-            int width = maze.cells.GetLength(0);
-            int height = maze.cells.GetLength(1);
+            int indexCurrentCell = maze.IndexStartCell;
 
-            MazeCell currentCell = maze.StartCell;
+            System.Collections.BitArray visitedCell = new System.Collections.BitArray(maze.AmountCells);
 
-            currentCell.Visited = true;
-            Stack<MazeCell> stackCells = new Stack<MazeCell>();
+            Stack<int> stackCells = new Stack<int>();
+
             do
             {
-                List<MazeCell> unvisitedNeighbours = new List<MazeCell>();
+                visitedCell[indexCurrentCell] = true;
 
-                int x = currentCell.position.x;
-                int y = currentCell.position.y;
+                List<int> unvisitedNeighbours = new List<int>(maze.Cells[indexCurrentCell].AmountNeighbours);
 
-                if (x > 0 && !maze.cells[x - 1, y].Visited)
+                for(int i = 0; i<maze.AmountCells; i++)
                 {
-                    unvisitedNeighbours.Add(maze.cells[x - 1, y]);
-                }
-                if (x < width - 1 && !maze.cells[x + 1, y].Visited)
-                {
-                    unvisitedNeighbours.Add(maze.cells[x + 1, y]);
-                }
-                if (y > 0 && !maze.cells[x, y - 1].Visited)
-                {
-                    unvisitedNeighbours.Add(maze.cells[x, y - 1]);
-                }
-                if (y < height - 1 && !maze.cells[x, y + 1].Visited)
-                {
-                    unvisitedNeighbours.Add(maze.cells[x, y + 1]);
+                    if(maze.AdjacencMatrix[indexCurrentCell, i] > 0)
+                    {
+                        if(!visitedCell[i])
+                        {
+                            unvisitedNeighbours.Add(i);
+                        }
+                    }
+                    if(unvisitedNeighbours.Count == maze.Cells[indexCurrentCell].AmountNeighbours)
+                    {
+                        break;
+                    }
                 }
 
                 if (unvisitedNeighbours.Count > 0)
                 {
-                    MazeCell chosenCell = unvisitedNeighbours[UnityEngine.Random.Range(0, unvisitedNeighbours.Count)];
-                    RemoveWall(currentCell, chosenCell);
-                    chosenCell.Visited = true;
-                    stackCells.Push(currentCell);
-                    chosenCell.DistanceFromStart = currentCell.DistanceFromStart + 1;
-                    currentCell = chosenCell;
+                    int indexChosenCell = unvisitedNeighbours[UnityEngine.Random.Range(0, unvisitedNeighbours.Count)];
+                    maze.AdjacencMatrix[indexCurrentCell, indexChosenCell] = 0; 
+                    maze.AdjacencMatrix[indexChosenCell, indexCurrentCell] = 0;
+                    stackCells.Push(indexCurrentCell);
+                    maze.Cells[indexChosenCell].DistanceFromStart = maze.Cells[indexCurrentCell].DistanceFromStart + 1;
+                    indexCurrentCell = indexChosenCell;
                 }
                 else
                 {
-                    currentCell = stackCells.Pop();
+                    indexCurrentCell = stackCells.Pop();
                 }
 
             } while (stackCells.Count > 0);
-        }
-
-        private void RemoveWall(MazeCell currentCell, MazeCell chosenCell)
-        {
-            if (currentCell.position.x == chosenCell.position.x)
-            {
-                if(currentCell.position.y > chosenCell.position.y)
-                {
-                    currentCell.walls ^= 0b1000;
-                    chosenCell.walls ^= 0b0100;
-                }
-                else
-                {
-                    currentCell.walls ^= 0b0100;
-                    chosenCell.walls ^= 0b1000;
-                }
-            }
-            else
-            {
-                if (currentCell.position.x > chosenCell.position.x)
-                {
-                    currentCell.walls ^= 0b0001;
-                    chosenCell.walls ^= 0b0010;
-                }
-                else
-                {
-                    currentCell.walls ^= 0b0010;
-                    chosenCell.walls ^= 0b0001;
-                }
-            }
         }
     }
 }

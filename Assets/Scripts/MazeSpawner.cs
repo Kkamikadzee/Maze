@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,24 +28,65 @@ namespace Assets.Scripts
                 y = height /2 
             };
 
-            for(int x = 0; x < maze.width; x++)
+            for(int x = 0; x < width; x++)
             {
-                for (int y = 0; y < maze.height; y++)
+                for (int y = 0; y < height; y++)
                 {
-                    gameObjectsMazeCells[x,y] = Object.Instantiate(cellPrefab, new Vector2((x - centerCell.x)*sizeCell.x, (y - centerCell.y) * sizeCell.y), Quaternion.identity);
+                    gameObjectsMazeCells[x,y] = UnityEngine.Object.Instantiate(cellPrefab, new Vector2((x - centerCell.x)*sizeCell.x, (y - centerCell.y) * sizeCell.y), Quaternion.identity);
                     gameObjectsMazeCells[x, y].transform.localScale = new Vector3(sizeCell.x, sizeCell.y, gameObjectsMazeCells[x, y].transform.localScale.z);
 
                     var cell = gameObjectsMazeCells[x, y].GetComponent<GameObjectMazeCell>();
                     cell.size = sizeCell;
+                }
+            }
 
-                    var walls = maze.cells[x, y].walls;
-                    for (int i = 0; i<cell.walls.Length; i++)
+            DisableWalls(width, height);
+        }
+
+        private void DisableWalls(int width, int height)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    var currentCell = gameObjectsMazeCells[x, y].GetComponent<GameObjectMazeCell>();
+                    if (x - 1 >= 0)
                     {
-                        if(walls % 2 == 0)
+                        if(maze.AdjacencMatrix[(x) + width * (y), (x - 1) + width * (y)] == 0)
                         {
-                            cell.walls[i].SetActive(false);
+                            var chosenCell = gameObjectsMazeCells[x - 1, y].GetComponent<GameObjectMazeCell>();
+                            currentCell.walls[0].SetActive(false);
+                            chosenCell.walls[1].SetActive(false);
                         }
-                        walls >>= 1;
+                    }
+                    if (x + 1 < width)
+                    {
+                        if(maze.AdjacencMatrix[(x) + width * (y), (x + 1) + width * (y)] == 0)
+                        {
+                            var chosenCell = gameObjectsMazeCells[x + 1, y].GetComponent<GameObjectMazeCell>();
+                            currentCell.walls[1].SetActive(false);
+                            chosenCell.walls[0].SetActive(false);
+                        }
+
+                    }
+                    if (y - 1 >= 0)
+                    {
+                        if (maze.AdjacencMatrix[(x) + width * (y), (x) + width * (y - 1)] == 0)
+                        {
+                            var chosenCell = gameObjectsMazeCells[x, y - 1].GetComponent<GameObjectMazeCell>();
+                            currentCell.walls[3].SetActive(false);
+                            chosenCell.walls[2].SetActive(false);
+
+                        }
+                    }
+                    if (y + 1 < height)
+                    {
+                        if (maze.AdjacencMatrix[(x) + width * (y), (x) + width * (y + 1)] == 0)
+                        {
+                            var chosenCell = gameObjectsMazeCells[x, y + 1].GetComponent<GameObjectMazeCell>();
+                            currentCell.walls[2].SetActive(false);
+                            chosenCell.walls[3].SetActive(false);
+                        }
                     }
                 }
             }

@@ -7,37 +7,92 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
-    public class MazeCell
-    {
-        public Vector2Int position;
-        public ushort walls; //До 16 стен можно хранить
-        public uint DistanceFromStart;
-
-        public bool Visited = false;
-
-        public MazeCell(Vector2Int position)
-        {
-            this.position = position;
-            walls = ushort.MaxValue;
-        }
-    }
     public class Maze
     {
-        public int width;
-        public int height;
+        public MazeCell[] Cells;
+        public MazeCell FinishCell;
 
-        public MazeCell[,] cells;
-        public Vector2Int positionStart;
-        public Vector2Int positionFinish;
+        public byte[,] AdjacencMatrix;
+        public int AmountCells => Cells.Length;
 
-        public MazeCell StartCell => cells[positionStart.x, positionStart.y];
-
-        public Maze(int Width, int Height, Vector2Int positionStart)
+        private int indexStartCell = -1;
+        public int IndexStartCell
         {
-            this.width = Width;
-            this.height = Height;
-            cells = new MazeCell[Width, Height];
-            this.positionStart = positionStart;
+            get
+            {
+                if (indexStartCell != -1)
+                {
+                    return indexStartCell;
+                }
+                else
+                {
+                    foreach ((MazeCell cell, int index) in Cells.Select((value, i) => (value, i)))
+                    {
+                        if (cell.position == PositionStart)
+                        {
+                            indexStartCell = index;
+                            return index;
+                        }
+                    }
+                }
+                return -1;
+            }
+        }
+        public Vector2 PositionStart;
+        public Vector2 PositionFinish;
+        public MazeCell StartCell
+        {
+            get
+            {
+                foreach((MazeCell cell, int index) in Cells.Select((value, i) => (value, i)))
+                {
+                    if(cell.position == PositionStart)
+                    {
+                        indexStartCell = index;
+                        return cell;
+                    }
+                }
+                return null;
+            }
+        }
+
+        public Maze() { }
+
+        public void InitializeOrthogonalMaze(int width, int height, Vector2Int positionStart)
+        {
+            this.PositionStart = positionStart;
+            Cells =  new MazeCell[width * height];
+            AdjacencMatrix = new byte[AmountCells, AmountCells];
+
+            for(int x = 0; x < width; x++)
+            {
+                for(int y = 0; y < height; y++)
+                {
+                    #region Заполнение матрицы смежности
+                    if (x - 1 >= 0)
+                    {
+                        AdjacencMatrix[(x) + width * (y), (x - 1) + width * (y)] = 1;
+                        AdjacencMatrix[(x - 1) + width * (y), (x) + width * (y)] = 1;
+                    }
+                    if (x + 1 < width)
+                    {
+                        AdjacencMatrix[(x) + width * (y), (x + 1) + width * (y)] = 1;
+                        AdjacencMatrix[(x + 1) + width * (y), (x) + width * (y)] = 1;
+                    }
+                    if (y - 1 >= 0)
+                    {
+                        AdjacencMatrix[(x) + width * (y), (x) + width * (y - 1)] = 1;
+                        AdjacencMatrix[(x) + width * (y - 1), (x) + width * (y)] = 1;
+                    }
+                    if (y + 1 < height)
+                    {
+                        AdjacencMatrix[(x) + width * (y), (x) + width * (y + 1)] = 1;
+                        AdjacencMatrix[(x) + width * (y + 1), (x) + width * (y)] = 1;
+                    }
+                    #endregion
+                    Cells[x + width * y] = new MazeCell(new Vector2(x, y), 4);
+                }
+            }
         }
     }
 }

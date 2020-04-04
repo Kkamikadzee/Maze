@@ -14,6 +14,13 @@ namespace Assets.Scripts
         [SerializeField]
         private GameObject cellPrefab;
 
+        [Range(0, 32)]
+        public int MazeWidth = 5;
+        [Range(0, 32)]
+        public int MazeHeight = 5;
+        [Range(0.0f, 2.0f)]
+        public float CellSize = 1f;
+
         private InputModel inputModel;
         private SystemInput systemInput;
 
@@ -29,9 +36,9 @@ namespace Assets.Scripts
             playerMove = new PlayerMoveSystem(inputModel, player);
 
             mazeSpawner = new MazeSpawner(cellPrefab);
-            mazeSpawner.SpawnMaze(8, 8, Vector2.one);
+            mazeSpawner.SpawnMaze(MazeWidth, MazeHeight, new Vector2(CellSize, CellSize));
 
-            var gameObjectStartCell = mazeSpawner.gameObjectsMazeCells[mazeSpawner.maze.positionStart.x, mazeSpawner.maze.positionStart.y];
+            var gameObjectStartCell = mazeSpawner.gameObjectsMazeCells[Mathf.RoundToInt(mazeSpawner.maze.PositionStart.x), Mathf.RoundToInt(mazeSpawner.maze.PositionStart.y)];
             Vector2 sizeStartCell = gameObjectStartCell.GetComponent<GameObjectMazeCell>().size;
             player.transform.position = new Vector3()
             {
