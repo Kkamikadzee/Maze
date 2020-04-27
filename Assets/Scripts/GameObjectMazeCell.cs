@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scripts
+public class GameObjectMazeCell : MonoBehaviour
 {
-    public class GameObjectMazeCell : MonoBehaviour
-    {
-        public Vector2 size;
+    public Vector2 size;
 
-        public GameObject[] walls;
-    }
+    public GameObject[] walls;
 }

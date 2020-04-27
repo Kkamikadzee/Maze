@@ -5,81 +5,90 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.Scripts
+public class MazeGenerator
 {
-    public class MazeGenerator
+    public Maze GenerateOrthogonalMaze(int width, int height, Vector2Int positionStart)
     {
-        public Maze GenerateMaze(int Width, int Height, Vector2Int positionStart)
-        {
-            Maze maze = new Maze();
-            maze.InitializeOrthogonalMaze(Width, Height, positionStart);
+        Maze maze = new Maze();
+        maze.InitializeOrthogonalMaze(width, height, positionStart);
             
-            RemoveWallsRecursiveBacktracker(maze);
+        RemoveWallsRecursiveBacktracker(maze);
 
-            PlaceMazeFinish(maze);
+        PlaceMazeFinish(maze);
 
-            return maze;
+        return maze;
+    }
+
+    public Maze GenerateThetaMaze(int outerDiameter, int innerDiameter, int firstLayer, bool bias)
+    {
+        Maze maze = new Maze();
+        maze.InitializeThetaMaze(outerDiameter, firstLayer, bias);
+            
+        RemoveWallsRecursiveBacktracker(maze);
+
+        PlaceMazeFinish(maze);
+
+        return maze;
+    }
+
+    private void PlaceMazeFinish(Maze maze)
+    {
+        MazeCell furthest = maze.Cells[0];
+
+        for (int i = 1; i < maze.AmountCells; i++)
+        {
+            if (maze.Cells[i].DistanceFromStart > furthest.DistanceFromStart)
+            {
+                furthest = maze.Cells[i];
+            }
         }
 
-        private void PlaceMazeFinish(Maze maze)
-        {
-            MazeCell furthest = maze.Cells[0];
+        maze.PositionFinish = furthest.position;
+    }
 
-            for (int i = 1; i < maze.AmountCells; i++)
+    private void RemoveWallsRecursiveBacktracker(Maze maze)
+    {
+        int indexCurrentCell = maze.IndexStartCell;
+
+        System.Collections.BitArray visitedCell = new System.Collections.BitArray(maze.AmountCells);
+
+        Stack<int> stackCells = new Stack<int>();
+
+        do
+        {
+            visitedCell[indexCurrentCell] = true;
+
+            List<int> unvisitedNeighbours = new List<int>(maze.Cells[indexCurrentCell].AmountNeighbours);
+
+            for(int i = 0; i<maze.AmountCells; i++)
             {
-                if (maze.Cells[i].DistanceFromStart > furthest.DistanceFromStart)
+                if(maze.AdjacencMatrix[indexCurrentCell, i] > 0)
                 {
-                    furthest = maze.Cells[i];
+                    if(!visitedCell[i])
+                    {
+                        unvisitedNeighbours.Add(i);
+                    }
+                }
+                if(unvisitedNeighbours.Count == maze.Cells[indexCurrentCell].AmountNeighbours)
+                {
+                    break;
                 }
             }
 
-            maze.PositionFinish = furthest.position;
-        }
-
-        private void RemoveWallsRecursiveBacktracker(Maze maze)
-        {
-            int indexCurrentCell = maze.IndexStartCell;
-
-            System.Collections.BitArray visitedCell = new System.Collections.BitArray(maze.AmountCells);
-
-            Stack<int> stackCells = new Stack<int>();
-
-            do
+            if (unvisitedNeighbours.Count > 0)
             {
-                visitedCell[indexCurrentCell] = true;
+                int indexChosenCell = unvisitedNeighbours[UnityEngine.Random.Range(0, unvisitedNeighbours.Count)]; //TODO: Учитывать вес стены
+                maze.AdjacencMatrix[indexCurrentCell, indexChosenCell] = 0; 
+                maze.AdjacencMatrix[indexChosenCell, indexCurrentCell] = 0;
+                stackCells.Push(indexCurrentCell);
+                maze.Cells[indexChosenCell].DistanceFromStart = maze.Cells[indexCurrentCell].DistanceFromStart + 1;
+                indexCurrentCell = indexChosenCell;
+            }
+            else
+            {
+                indexCurrentCell = stackCells.Pop();
+            }
 
-                List<int> unvisitedNeighbours = new List<int>(maze.Cells[indexCurrentCell].AmountNeighbours);
-
-                for(int i = 0; i<maze.AmountCells; i++)
-                {
-                    if(maze.AdjacencMatrix[indexCurrentCell, i] > 0)
-                    {
-                        if(!visitedCell[i])
-                        {
-                            unvisitedNeighbours.Add(i);
-                        }
-                    }
-                    if(unvisitedNeighbours.Count == maze.Cells[indexCurrentCell].AmountNeighbours)
-                    {
-                        break;
-                    }
-                }
-
-                if (unvisitedNeighbours.Count > 0)
-                {
-                    int indexChosenCell = unvisitedNeighbours[UnityEngine.Random.Range(0, unvisitedNeighbours.Count)];
-                    maze.AdjacencMatrix[indexCurrentCell, indexChosenCell] = 0; 
-                    maze.AdjacencMatrix[indexChosenCell, indexCurrentCell] = 0;
-                    stackCells.Push(indexCurrentCell);
-                    maze.Cells[indexChosenCell].DistanceFromStart = maze.Cells[indexCurrentCell].DistanceFromStart + 1;
-                    indexCurrentCell = indexChosenCell;
-                }
-                else
-                {
-                    indexCurrentCell = stackCells.Pop();
-                }
-
-            } while (stackCells.Count > 0);
-        }
+        } while (stackCells.Count > 0);
     }
 }

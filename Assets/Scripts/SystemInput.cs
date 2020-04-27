@@ -5,19 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.Scripts
+public class SystemInput
 {
-    public class SystemInput
+    private InputModel inputModel;
+    public SystemInput(InputModel inputModel)
     {
-        private InputModel inputModel;
-        public SystemInput(InputModel inputModel)
-        {
-            this.inputModel = inputModel;
-        }
-        public void Update()
-        {
-            inputModel.Horizontal = Input.GetAxis("Horizontal");
-            inputModel.Vertical = Input.GetAxis("Vertical");
-        }
+        this.inputModel = inputModel;
+    }
+    public void Update()
+    {
+        inputModel.Horizontal = Input.GetAxis("Horizontal");
+        inputModel.Vertical = Input.GetAxis("Vertical");
     }
 }
