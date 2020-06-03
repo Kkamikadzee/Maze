@@ -167,7 +167,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.25
+  m_Radius: 0.1
 --- !u!122 &326146113
 Halo:
   m_ObjectHideFlags: 0
@@ -179,7 +179,7 @@ Halo:
   m_Color:
     serializedVersion: 2
     rgba: 4286611584
-  m_Size: 0.25
+  m_Size: 0.1
 --- !u!4 &326146114
 Transform:
   m_ObjectHideFlags: 0
@@ -306,11 +306,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 326146110}
-  cellPrefab: {fileID: 4900955155290034557, guid: cac3faa6f1da5a54cb74320a06c8c221,
-    type: 3}
-  MazeWidth: 19
-  MazeHeight: 13
-  CellSize: 0.6
+  Tessellation: 1
+  MazeWidth: 5
+  MazeHeight: 2
+  OuterDiameter: 5
+  InnerDiameter: 1
+  AmountCellInFirstLayer: 6
+  CellSize: 1
 --- !u!4 &1394576046
 Transform:
   m_ObjectHideFlags: 0

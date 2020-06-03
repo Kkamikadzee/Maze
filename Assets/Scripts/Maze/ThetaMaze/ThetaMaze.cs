@@ -58,6 +58,10 @@ namespace Maze.ThetaMaze
                     _adjacencMatrix[i, 0] = weightCircularWalls;
                 }
             }
+            else
+            {
+                SetRandomStart();
+            }
 
             _cells[0] = new MazeCell(Vector2.zero, _amountCellInFirstLayer);
         
@@ -117,6 +121,13 @@ namespace Maze.ThetaMaze
                         new MazeCell(new Vector2(currentLayer, angleArc1), amountNeighbours);
                 }
             }
+        }
+        private void SetRandomStart()
+        {
+            var amountCellsInPreviousLayers = 1 + _amountCellInFirstLayer * (_innerDiameter - 1) + (_innerDiameter - 1 - 1) * (_innerDiameter - 1) * 2;
+            var amountCellsInCurrentLayer = _amountCellInFirstLayer + (4 * _innerDiameter - 1);
+
+            _indexStartCell = amountCellsInPreviousLayers + Random.Range(0, amountCellsInCurrentLayer);
         }
     }
 }

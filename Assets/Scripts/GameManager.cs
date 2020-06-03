@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Maze;
 using UnityEngine;
 
 class GameManager : MonoBehaviour
@@ -10,11 +11,18 @@ class GameManager : MonoBehaviour
     [SerializeField]
     public GameObject player;
 
-    [Range(0, 32)]
+    public Maze.TessellationType Tessellation;
+    [Range(0, 16)]
     public int MazeWidth = 5;
-    [Range(0, 32)]
+    [Range(0, 16)]
     public int MazeHeight = 5;
-    [Range(0.0f, 2.0f)]
+    [Range(0, 16)]
+    public int OuterDiameter = 5;
+    [Range(1, 16)]
+    public int InnerDiameter = 1;
+    [Range(1, 16)]
+    public int AmountCellInFirstLayer = 6;
+    [Range(0.25f, 2.0f)]
     public float CellSize = 1f;
 
     private InputModel _inputModel;
@@ -31,9 +39,17 @@ class GameManager : MonoBehaviour
 
         _playerMove = new PlayerMoveSystem(_inputModel, player);
 
-        _mazeManager = new Maze.MazeManager(Maze.TessellationType.Theta, Maze.GenerationAlgorithmEnum.RecursiveBacktracker);
+        _mazeManager = new Maze.MazeManager(Tessellation, Maze.GenerationAlgorithmEnum.RecursiveBacktracker);
 
-        _mazeManager.CreateMaze(new Vector3(0, 0), CellSize, 5, 1, 6, 1);
+        switch (Tessellation)
+        {
+            case TessellationType.Orthigonal:
+                _mazeManager.CreateMaze(new Vector3(0, 0), CellSize, MazeWidth, MazeHeight);
+                break;
+            case TessellationType.Theta:
+                _mazeManager.CreateMaze(new Vector3(0, 0), CellSize, OuterDiameter, InnerDiameter, AmountCellInFirstLayer, 0);
+                break;
+        }
 
         player.transform.position = new Vector3()
         {
@@ -47,11 +63,6 @@ class GameManager : MonoBehaviour
     }
     private void Update()
     {
-        if (Input.GetAxis("Fire1") > 0.5f) //KEK
-        {
-            _mazeManager.DestroyMaze();
-            _mazeManager.CreateMaze(new Vector3(0, 0), CellSize, MazeWidth, MazeHeight);
-        }
         _systemInput.Update();
     }
 }

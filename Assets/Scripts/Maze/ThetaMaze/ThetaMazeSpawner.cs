@@ -10,9 +10,20 @@ namespace Maze.ThetaMaze
         {
         }
 
-        private bool EnableThetaWalls(ThetaMaze maze, int x, int y, int numberWall)
+        private bool EnableThetaWalls(ThetaMaze maze, int currentLayer, int amountCellsInPreviousLayers, int currentCellInLayer, int amountCellsInCurrentLayer, int neighbourArc, int amountNeighbours)
         {
-            throw new Exception("KEK");
+            if ((maze.AmountCells == amountCellsInPreviousLayers + amountCellsInCurrentLayer))
+            {
+                return true;
+            }
+            return (maze.ThereIsWall(amountCellsInPreviousLayers + currentCellInLayer,
+                amountCellsInPreviousLayers + amountCellsInCurrentLayer + neighbourArc +
+                amountNeighbours));
+        }
+        private bool EnableThetaWalls(ThetaMaze maze, int amountCellsInPreviousLayers, int currentCellInLayer, int previousCellInLayer)
+        {
+            return (maze.ThereIsWall(amountCellsInPreviousLayers + currentCellInLayer,
+                amountCellsInPreviousLayers + previousCellInLayer));
         }
     
         private Vector3[] GetPositions(int currentLayer, float angleArc)
@@ -22,8 +33,8 @@ namespace Maze.ThetaMaze
             {
                 positions[i] = new Vector3()
                 {
-                    x = ((currentLayer + i) * Mathf.Cos(angleArc)) + _positionMaze.x,
-                    y = ((currentLayer + i) * Mathf.Sin(angleArc)) + _positionMaze.y
+                    x = ((currentLayer + i) * Mathf.Cos(angleArc)) * _sizeCell + _positionMaze.x,
+                    y = ((currentLayer + i) * Mathf.Sin(angleArc)) * _sizeCell + _positionMaze.y
                 };
             }
 
@@ -40,16 +51,16 @@ namespace Maze.ThetaMaze
             {
                 positions.Add(new Vector3()
                 {
-                    x = ((currentLayer + 1) * Mathf.Cos(phi)) + _positionMaze.x,
-                    y = ((currentLayer + 1) * Mathf.Sin(phi)) + _positionMaze.y,
+                    x = ((currentLayer + 1) * Mathf.Cos(phi)) * _sizeCell + _positionMaze.x,
+                    y = ((currentLayer + 1) * Mathf.Sin(phi)) * _sizeCell + _positionMaze.y,
                     z = _positionMaze.z
                 });
             }
 
             positions.Add(new Vector3()
             {
-                x = ((currentLayer + 1) * Mathf.Cos(angleArcNeighbour)) + _positionMaze.x,
-                y = ((currentLayer + 1) * Mathf.Sin(angleArcNeighbour)) + _positionMaze.y,
+                x = ((currentLayer + 1) * Mathf.Cos(angleArcNeighbour)) * _sizeCell + _positionMaze.x,
+                y = ((currentLayer + 1) * Mathf.Sin(angleArcNeighbour)) * _sizeCell + _positionMaze.y,
                 z = _positionMaze.z
             });
 
@@ -95,7 +106,7 @@ namespace Maze.ThetaMaze
             int neighbourArc, amountNeighbours;
             float angleArcNeighbour, angleArcInNextLayer;
 
-            for (int currentLayer = 0;
+            for (int currentLayer = maze.InnerDiameter - 1;
                 currentLayer < maze.OuterDiameter;
                 currentLayer++) //Какой страшный цикл. Но разбивать я его не буду.
             {
@@ -114,8 +125,8 @@ namespace Maze.ThetaMaze
                     angleArc1 = currentLayer > 0 ? (2 * Mathf.PI / amountCellsInCurrentLayer) * currentCellInLayer : 0;
                     positionCell = new Vector2()
                     {
-                        x = (currentLayer * Mathf.Cos(angleArc1)) + _positionMaze.x,
-                        y = (currentLayer * Mathf.Sin(angleArc1)) + _positionMaze.y
+                        x = (currentLayer * Mathf.Cos(angleArc1)) * _sizeCell + _positionMaze.x,
+                        y = (currentLayer * Mathf.Sin(angleArc1)) * _sizeCell + _positionMaze.y
                     };
 
                     _gameObjectsMazeCells[amountCellsInPreviousLayers + currentCellInLayer] = new GameObject(nameCell)
@@ -141,6 +152,14 @@ namespace Maze.ThetaMaze
                     LineRenderer line;
                     while (angleArcNeighbour < angleArc2)
                     {
+                        if (!EnableThetaWalls(maze, currentLayer,amountCellsInPreviousLayers, currentCellInLayer,
+                            amountCellsInCurrentLayer, neighbourArc, amountNeighbours))
+                        {
+                            amountNeighbours++;
+                            angleArcNeighbour = angleArcInNextLayer * (neighbourArc + amountNeighbours);
+                            angleArcNeighbour = angleArcNeighbour > angleArc2 ? angleArc2 : angleArcNeighbour;
+                            continue;
+                        }
                         currentWall = new GameObject(String.Format("Wall({0})", amountNeighbours))
                         {
                             transform =
@@ -161,13 +180,16 @@ namespace Maze.ThetaMaze
                         amountNeighbours++;
                         angleArcNeighbour = angleArcInNextLayer * (neighbourArc + amountNeighbours);
                         angleArcNeighbour = angleArcNeighbour > angleArc2 ? angleArc2 : angleArcNeighbour;
-                        var positionsArc = GetPositions(currentLayer, lastAngleArc, angleArcNeighbour, 32);
+                        var positionsArc = GetPositions(currentLayer, lastAngleArc, angleArcNeighbour, 64);
                         line.positionCount = positionsArc.Length;
                         line.SetPositions(positionsArc);
                         collider.points = ConvetrToVector2(positionsArc);
                     }
 
-                    if (currentLayer != 0)
+                    var previousCellInLayer =
+                        currentCellInLayer > 0 ? currentCellInLayer - 1 : amountCellsInCurrentLayer - 1;
+                    
+                    if ((currentLayer != 0) && (EnableThetaWalls(maze, amountCellsInPreviousLayers, currentCellInLayer, previousCellInLayer)))
                     {
                         currentWall = new GameObject(String.Format("Wall({0})", amountNeighbours))
                         {
@@ -179,7 +201,7 @@ namespace Maze.ThetaMaze
                         };
                         line = currentWall.AddComponent<LineRenderer>();
                         line.useWorldSpace = false;
-                        line.widthMultiplier = 0.16f;
+                        line.widthMultiplier = 0.16f * _sizeCell;
                         line.numCapVertices = 4;
 
                         var collider = currentWall.AddComponent<EdgeCollider2D>();
