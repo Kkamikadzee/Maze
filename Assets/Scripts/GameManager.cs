@@ -9,8 +9,6 @@ class GameManager : MonoBehaviour
 {
     [SerializeField]
     public GameObject player;
-    [SerializeField]
-    public GameObject cellPrefab;
 
     [Range(0, 32)]
     public int MazeWidth = 5;
@@ -19,38 +17,41 @@ class GameManager : MonoBehaviour
     [Range(0.0f, 2.0f)]
     public float CellSize = 1f;
 
-    private InputModel inputModel;
-    private SystemInput systemInput;
+    private InputModel _inputModel;
+    private SystemInput _systemInput;
 
-    private PlayerMoveSystem playerMove;
+    private PlayerMoveSystem _playerMove;
 
-    MazeSpawner mazeSpawner;
+    Maze.MazeManager _mazeManager;
 
     private void Start()
     {
-        inputModel = new InputModel();
-        systemInput = new SystemInput(inputModel);
+        _inputModel = new InputModel();
+        _systemInput = new SystemInput(_inputModel);
 
-        playerMove = new PlayerMoveSystem(inputModel, player);
+        _playerMove = new PlayerMoveSystem(_inputModel, player);
 
-        mazeSpawner = new MazeSpawner(cellPrefab);
-        var sizeCell = new Vector2(CellSize, CellSize);
-        //mazeSpawner.SpawnOrthogonalMaze(MazeWidth, MazeHeight, sizeCell);
-        mazeSpawner.SpawnThetaMaze(4, 1, 4);
+        _mazeManager = new Maze.MazeManager(Maze.TessellationType.Theta, Maze.GenerationAlgorithmEnum.RecursiveBacktracker);
 
-        var coordinateStart = mazeSpawner.CoordinateStart;
+        _mazeManager.CreateMaze(new Vector3(0, 0), CellSize, 5, 1, 6, 1);
+
         player.transform.position = new Vector3()
         {
-            x = coordinateStart.x + sizeCell.x / 2,
-            y = coordinateStart.y + sizeCell.y / 2
+            x = 0,
+            y = 0
         };
     }
     private void FixedUpdate()
     {
-        playerMove.FixedUpdate();
+        _playerMove.FixedUpdate();
     }
     private void Update()
     {
-        systemInput.Update();
+        if (Input.GetAxis("Fire1") > 0.5f) //KEK
+        {
+            _mazeManager.DestroyMaze();
+            _mazeManager.CreateMaze(new Vector3(0, 0), CellSize, MazeWidth, MazeHeight);
+        }
+        _systemInput.Update();
     }
 }

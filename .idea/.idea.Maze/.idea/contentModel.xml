@@ -8,13 +8,29 @@
       <e p="Assets" t="Include">
         <e p="Scripts" t="Include">
           <e p="GameManager.cs" t="Include" />
-          <e p="GameObjectMazeCell.cs" t="Include" />
           <e p="HintRenderer.cs" t="Include" />
           <e p="InputModel.cs" t="Include" />
-          <e p="Maze.cs" t="Include" />
-          <e p="MazeCell.cs" t="Include" />
-          <e p="MazeGenerator.cs" t="Include" />
-          <e p="MazeSpawner.cs" t="Include" />
+          <e p="Maze" t="Include">
+            <e p="GenerationAlgorithmEnum.cs" t="Include" />
+            <e p="Maze.cs" t="Include" />
+            <e p="MazeCell.cs" t="Include" />
+            <e p="MazeGenerator.cs" t="Include" />
+            <e p="MazeManager.cs" t="Include" />
+            <e p="MazeSpawner.cs" t="Include" />
+            <e p="OrthogonalMaze" t="Include">
+              <e p="OrthogonalMaze.cs" t="Include" />
+              <e p="OrthogonalMazeSpawner.cs" t="Include" />
+            </e>
+            <e p="RecursiveBacktracker" t="Include">
+              <e p="RecursiveBacktracker.cs" t="Include" />
+              <e p="RecursiveBacktrackerMazeGenerator.cs" t="Include" />
+            </e>
+            <e p="TessellationType.cs" t="Include" />
+            <e p="ThetaMaze" t="Include">
+              <e p="ThetaMaze.cs" t="Include" />
+              <e p="ThetaMazeSpawner.cs" t="Include" />
+            </e>
+          </e>
           <e p="PlayerMoveSystem.cs" t="Include" />
           <e p="SystemInput.cs" t="Include" />
         </e>
